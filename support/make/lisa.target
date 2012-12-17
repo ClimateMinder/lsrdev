@@ -1,0 +1,46 @@
+#-*-Makefile-*- vim:syntax=make
+#
+# lisa is based on the LS Research ProFlex01-R2 module.   This module
+# includes a msp430f5437a and CC2520/CC2591 radio.
+#
+# set the environment variable LISA_ROOT to the base directory of the
+# lisa tree.   The tree should have the same directory structure as
+# a standard tinyos directory structure.
+#
+# WARNING: make sure that the environment variable LISA_ROOT has been exported.
+#
+# Also set the environment variable TOSMAKE_PATH to include 
+# $LISA_ROOT/support/make.  This will tell the tinyos build system where
+# to find the rules for building lisa executables.
+#
+
+ifndef LISA_ROOT
+    $(error LISA_ROOT is needed for lisa builds)
+endif
+
+PLATFORM = lisa
+PLATFORMDIR = $(LISA_ROOT)/tos/platforms/$(PLATFORM)
+
+MSP_MCU  = msp430f5437a
+
+#
+# The PFLAGS addition for tos/platforms/lisa $(PLATFORM_DIR) is required
+# so the make system can find the platform.  The others for tos/{system,interfaces}
+# need to be here to make sure we don't get overridden by threads or
+# other stuff that comes in via the CFLAGS varient.  Stuff in the .platform
+# file come in last after PFLAGS and CFLAGS.
+#
+# Currently, Lisa has a simple panic implementation brought in from the main
+# system (panic_simple).
+#
+
+PFLAGS += -I$(LISA_ROOT)/include
+PFLAGS += -I$(PLATFORMDIR)
+PFLAGS += -I$(LISA_ROOT)/tos/system
+PFLAGS += -I$(LISA_ROOT)/tos/interfaces
+PFLAGS += -I$(TOSROOT)/tos/system/panic_simple
+
+$(call TOSMake_include_platform,msp)
+
+lisa: $(BUILD_DEPS)
+        @:

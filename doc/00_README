@@ -1,0 +1,138 @@
+
+Installing a development environment for the Lisa platform.
+
+
+This brief is written assuming that there is a common root directory,
+we'll call it w and it is usually at the top level of a working
+directory.  ie.  ~/w.
+
+Most commands are entered from a terminal window.
+
+
+**************************************************************************************
+
+0) Overview.
+
+Lisa code is built using two trees.
+
+    I)  Modified TinyOS trunk.  Adds support for msp430f5437a.  tp-master branch.
+    II) Lisa trunk.  Main body of Lisa code.
+
+The following parts are essential to building Lisa images:
+
+a) Set up a development environment.  (Ubuntu or Debian based)
+b) mspgcc (LTS 20120406) toolchain (gcc 4.6.3)
+c) two trees are used and environment is set to include both trees.
+d) Jtag pod is connected to /dev/ttyUSB0
+e) Serial (Dock) port is connected to /dev/ttyUSB1
+
+**************************************************************************************
+
+1) Development Environment Installation
+
+follow the instructions at:
+
+https://github.com/tp-freeforall/prod/blob/tp-master/00b_Development_Environment
+
+
+**************************************************************************************
+
+2) Pull main tinyos tree gh:tp-freeforall/prod(tp-master)
+
+cd ~/w
+mkdir t2_cur
+cd t2_cur
+git clone git://github.com/tp-freeforall/prod tinyos-2.x
+
+You will be on the tp-master branch of the repo.
+
+**************************************************************************************
+
+3) Pull the Lisa tree.
+
+The main body of Lisa code is held in the git repository gh:ClimateMinder/lisa(master).  You
+pull a read only copy from git://github.com/ClimateMinder/lisa.git.
+
+If you will be contributing code to the project you should follow the instruction found
+in doc/02_Contributing_Code.  You will get a github login in and fork your own copy
+of the lisa repo.   Work is done on local working branches.  The working branch should be
+kept current with respect to the trunk using rebase, and a pull request made against the
+trunk.
+
+Normal user (not enabled).
+
+cd ~/w
+git clone git://github.com/ClimateMinder/lisa.git
+cd lisa
+
+# you should be on the master branch by default.
+
+**************************************************************************************
+
+4) Set environment variables.
+
+MOTECOM="serial@/dev/ttyUSB1:115200"
+LISA_ROOT="$HOME/w/lisa"
+TOSMAKE_PATH="$LISA_ROOT/support/make"
+TOSROOT=$HOME/w/t2_cur/tinyos-2.x
+TOSDIR=$TOSROOT/tos
+
+MAKERULES=$TOSROOT/support/make/Makerules
+CLASSPATH=.:$TOSROOT/support/sdk/java/tinyos.jar
+
+PYTHONPATH=$TOSROOT/support/sdk/python:$PYTHONPATH
+PYTHONPATH="/usr/local/lib/python3.1/dist-packages:$PYTHONPATH"
+
+export MAKERULES TOSDIR TOSROOT CLASSPATH PYTHONPATH LD_LIBRARY_PATH
+export MOTECOM LISA_ROOT TOSMAKE_PATH
+
+
+**************************************************************************************
+
+
+5) Do a test compile and gdb run.  This assumes that the JTAG pod is
+   connected to /dev/ttyUSB0.
+
+   cd ~/w/t2_cur/tinyos-2.x/apps/Blink
+   make lisa
+   mspdebug uif -qjd /dev/ttyUSB0 "prog build/lisa/main.exe"
+
+
+   When the download completes use a different window and run:
+
+   mspdebug uif -qjd /dev/ttyUSB0 "opt gdb_loop true" gdb
+
+
+   Follow the instructions in $TOSROOT/tos/chips/msp430/99_gdb/00_README to set
+   up the gdb control files in their proper places (.gdbinit, .gdb_x5, etc).
+
+   now if you run msp430-gdb build/lisa/main.exe  gdb should connect to the proxy and start
+   to debug your code in the device.  To let the device run use 'c', continue.  Do not use
+   'run'.
+
+
+**************************************************************************************
+
+6) Do a test compile and gdb run from the main tree.
+
+   If you have telosb hardware:
+
+   cd ~/w/t2_cur/tinyos-2.x/apps/Blink
+   make debugopt telosb install
+
+
+**************************************************************************************
+
+The main tracking repo is at:
+
+    gh:tinyprod/prod(tp-master)
+        read-only, production orientated tracking repo.   Tracks T2 SVN mainline.
+	MM modifications to the T2 core are on the mm-core-next branch.
+
+    gh:tp-freeforall/prod(tp-master)
+        read-only, development version of the tinyprod/prod repository.  Typically
+	used for integrating working development code.
+
+    gh:ClimateMinder/lisa(master)
+	read-only, lisa mainline.
+

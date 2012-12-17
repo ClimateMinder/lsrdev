@@ -1,4 +1,4 @@
 lisa
 ====
 
-Initial Lisa working Repository
+Lisa working Repository
