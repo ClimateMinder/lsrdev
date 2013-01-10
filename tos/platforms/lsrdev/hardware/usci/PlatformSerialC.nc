@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2009-2010 People Power Company
+ * Copyright (c) 2012-2013 Eric B. Decker
  * All rights reserved.
- *
- * This open source code was developed with funding from People Power Company
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,20 +32,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-/**
- * De-facto standard component for platform independent access to a serial port.
+/*
+ * PlatformSerial for the lsrdev platform.
  *
- * This implementation supports the TI EM430 and other MSP430XV2-based boards.
+ * UART0 (Port A0)
+ * pin 35, 36 lsr proflex module, P3.4, P3.5
+ * 115200, 8N1
  *
- * Note that, since the standard practice is to use StdControl to
- * start and stop this module (which requests and releases the
- * corresponding USCI UART module), inclusion of this into an
- * application is incompatible with sharing the UART among multiple
- * clients in the TEP108 sense of resource sharing.
- *
- * @author David Moss
- * @author Peter A. Bigot <pab@peoplepowerco.com>
+ * 8MHz (8,000,000) main processor clock.
  */
 
 configuration PlatformSerialC {
@@ -70,4 +62,5 @@ implementation {
   UartByte = UartC;
   Msp430UsciError = UartC;
   PlatformSerialP.Resource -> UartC.Resource;
+  PlatformSerialP.Msp430UsciConfigure <- UartC;
 }

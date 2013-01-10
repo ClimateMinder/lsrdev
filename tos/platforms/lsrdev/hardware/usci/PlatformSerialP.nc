@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2009-2010 People Power Company
+ * Copyright (c) 2012-2013 Eric B. Decker
  * All rights reserved.
- *
- * This open source code was developed with funding from People Power Company
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,13 +32,21 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author David Moss
- * @author Peter A. Bigot <pab@peoplepowerco.com>
+/*
+ * PlatformSerial for the lsrdev platform.
+ *
+ * UART0 (Port A0)
+ * pin 35, 36 lsr proflex module, P3.4, P3.5
+ * 115200, 8N1
+ *
+ * 8MHz (8,000,000) main processor clock.
  */
 
 module PlatformSerialP {
-  provides interface StdControl;
+  provides {
+    interface StdControl;
+    interface Msp430UsciConfigure;
+  }
   uses interface Resource;
 }
 
@@ -55,4 +61,20 @@ implementation {
   }
 
   event void Resource.granted() { }
+
+  const msp430_usci_config_t lsrdev_uart_config = {
+    /*
+     * 8MHz (8,000,000 Hz), 115200 baud
+     * UCBR 69, UCBRS 4, UCBRF 0, UCOS16 0
+     */
+    ctl0 : 0,
+    ctl1 : UCSSEL__SMCLK,
+    br0  : 69,
+    br1  : 0,
+    mctl : UCBRF_0 | UCBRS_4,
+  };
+
+  async command const msp430_usci_config_t *Msp430UsciConfigure.getConfiguration() {
+    return &lsrdev_uart_config;
+  }
 }

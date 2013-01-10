@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Eric B. Decker
+ * Copyright (c) 2012-2013 Eric B. Decker
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,12 @@ configuration PlatformUsciMapC {
 
   components HplMsp430GeneralIOC as GIO;
 
+  /* comm link, UART TX/RX */
   components Msp430UsciUartA0P as UartA0;
   UartA0.URXD -> GIO.UCA0RXD;
   UartA0.UTXD -> GIO.UCA0TXD;
 
+  /* Radio, CC2520 */
   components Msp430UsciSpiB0P as SpiB0;
   SpiB0.SIMO -> GIO.UCB0SIMO;
   SpiB0.SOMI -> GIO.UCB0SOMI;
