@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011 Eric B. Decker
+ * Copyright (c) 2013 Eric B. Decker
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +37,14 @@
  *
  * Initilization of the Clock system for the MM5 series motes.
  *
- * MM5s are based on msp430f5438 series cpus.
+ * The lsrdev platform is based on the msp430f5437a.  The 5437
+ * follows the same initilization flow as the 5438.
  *
- * The 5438 runs at 2.2V and can clock up to 18MHz.   The 5438a
- * can run at 1.8V (up to 8 MHz), and its core can be tweaked to
- * enable faster clocking.   We default to using 8MHz so allow
- * low power execution on the 5438a.
+ * The cpu on the lsr module is run at 3.3 V.   The TI documentation
+ * states the PMMCOREV is initialized to 0 (f_sys up to 8 MHz) but when
+ * read with a debugger it seems to be set to 2 (f_sys up to 20 MHz).
+ * This may be an artifact of a 5437 which has a minimum voltage of
+ * 2.2V which is consistent with PCOREV of 2.
  *
  * Previous ports of TinyOS to msp430 cpus, would set the cpu to
  * clock at a power of 2 (MiHz).   This was to facilitate syncronizing
@@ -50,16 +53,8 @@
  * is provided by TMilli and 1 uis (binary microsec = 1/1024/1024)
  * is provided by TMicro.
  *
- * It is very desireable to run the 5438a at 1.8V for power conservation
- * (the specs are quite good).  We also want to run it at 8MHz (decimal).
- * Clocking at 8MiHz is not recommended (out of spec).  It might work but
- * it is unclear how flakey behaviour would manifest.  Not recommended.
- *
- * So for power performance reasons we want to configure for 8MHz and 1.8V.
- * (Yes the 5438 is different but we are using it to simulate set up for
- * the 5438a which has the tasty power performance specs.)  Note, we ignore
- * the 5438.   It is quite buggy and has a pin for pin replacement (the 5438a)
- * that behaves mor better.   So why bother supporting the 5438.
+ * To play it safe we set the main cpu clock to 8MHz (not 8MiHz).   Assumes
+ * PCOREV of 0.
  *
  * The TMicro timer (TA1) is run off DCOCLK/8 which yields 1us (not 1uis)
  * ticks.  However, TMilli is the long term timer that runs when the system
@@ -75,9 +70,8 @@
  *
  * We want the following set up to be true when we are complete:
  *
- * 8 MHz clock.    The 5438a is spec'd for a max of 8MHz when
- * running at 1.8V.  So that is what we use.  Acutally 7995392 Hz
- * (.0576% error, it'll do).
+ * 8 MHz clock.  Actually, 7995392 Hz (unmeasured, but a logic analyzer
+ * looks close).
  *
  * DCOCLK -> MCLK, SMCLK.   Also drives high speed timer that
  * provides TMicro.   1us (note, decimal microsecs).  DCOCLK
@@ -86,10 +80,8 @@
  * MCLK /1: main  cpu clock.  Off DCOCLK.
  *
  * SMCLK /1: used for timers and peripherals.  We want to run the
- * SPI (SD, GPS, subsystems, etc.) quickly and this gives us the
- * option.  Off DCOCLK.  May want to divide it down because it isn't
- * needed to be full speed.   Dividing it down should save some energy
- * because we won't be clocking downstream parts as fast.
+ * SPI (CC2520 Radio) quickly and this gives us the option.  Off
+ * DCOCLK.
  *
  * ACLK: 32 KiHz.   Primarily used for slow speed timer that
  * provides TMilli.
@@ -170,8 +162,9 @@ module PlatformClockP {
    * are reset to inputs and Pin Control and this shuts down the oscillator.
    * So we need to bring it back up.
    *
-   * On reset the 5438/5438a UCS is set to a configuration much like the
-   * following:  (all values in hex).
+   * On reset the x5 (543x/543xa) UCS is set to a configuration much like the
+   * following:  (all values in hex).  observed on both 5438a and 5437.
+   * 5437 observed MCLK 1.075 MHz.
    *
    * ucsctl0: 13e8 0020 101f 0000 0044 0000 c1cd 0403 0307
    *
@@ -189,10 +182,12 @@ module PlatformClockP {
    *
    * PWR_UP_SEC is the number of times we need to wait for
    * TimerA to cycle (16 bits) when clocked at the default
-   * msp430f5438 dco (about 2MHz).
+   *
+   * msp430f5438 dco (about 2MHz).    use 16   (verify clock)
+   * msp430f5437 dco (about 1MHz).    use 32
    */
 
-#define PWR_UP_SEC 16
+#define PWR_UP_SEC 32
 
   uint16_t maj_xt1() {
     uint16_t a, b, c;
@@ -279,7 +274,8 @@ module PlatformClockP {
      * Enable XT1, lowest capacitance.
      *
      * XT1 pins (7.0 and 7.1) default to Pins/In.   For the XT1
-     * to function these have to be swithed to Module control.
+     * to function these have to be switched to Module control.
+     * XT1 is used to control the 32 KiHz Xtal.
      *
      * Surf code mumbles something about P5.0 and 1 must be clear
      * in P5DIR.   Shouldn't have any effect (the pins get kicked
@@ -296,6 +292,10 @@ module PlatformClockP {
      * be checked.   FIXME. 
      */
 
+    /*
+     * P7.0 and P7.1 connect to the 32 KiHz Xtal.  Pins 13, 14 checked
+     * out for the 5437 and 5438.
+     */
     P7SEL |= (BIT0 | BIT1);
     UCSCTL6 &= ~(XT1OFF | XCAP_3);
 
@@ -337,11 +337,13 @@ module PlatformClockP {
      * This is a major failure as we assume we have an XT1 xtal for
      * timing stability.   Flag it and try again?
      * FIXME
+     *
+     * Should PANIC!
      */
     if (UCSCTL7 & XT1LFOFFG) {
       P7SEL &= ~(BIT0| BIT1);
       UCSCTL6 |= XT1OFF;
-      while (1)
+      while (1)				/* PANIC! */
 	nop();
       return FAIL;
     }
@@ -446,7 +448,7 @@ module PlatformClockP {
     do {
       UCSCTL7 &= ~(XT1LFOFFG | DCOFFG);
       SFRIFG1 &= ~OFIFG;                      // Clear fault flags
-    } while (UCSCTL7 & DCOFFG); // Test DCO fault flag
+    } while (UCSCTL7 & DCOFFG);		      // Test DCO fault flag
 
     /*
      * ACLK is XT1/1, 32KiHz.
