@@ -89,8 +89,8 @@
  *       .1	0pI	cc_si (b0simo)		      .1	0pI
  *       .2	0pI	cc_so (b0somi)		      .2	0pI
  *       .3	0pI	cc_sclk (b0clk)		      .3	0pI
- *       .4	1pO	uart_tx			      .4	1pO
- *       .5	1pI	uart_rx			      .5	1pO
+ *       .4	1pO	uart_tx	(a0_tx)		      .4	1pO
+ *       .5	1pI	uart_rx	(a0_rx)		      .5	1pO
  *       .6	1pI				      .6	1pO	cc_rst_n
  *       .7	1pI				      .7	1pO
  *
