@@ -1,5 +1,5 @@
 
-Installing a development environment for the Lisa platform.
+Installing a development environment for the Lsrdev platform.
 
 
 This brief is written assuming that there is a common root directory,
@@ -13,12 +13,12 @@ Most commands are entered from a terminal window.
 
 0) Overview.
 
-Lisa code is built using two trees.
+Lsrdev code is built using two trees.
 
     I)  Modified TinyOS trunk.  Adds support for msp430f5437a.  tp-master branch.
-    II) Lisa trunk.  Main body of Lisa code.
+    II) Lsrdev trunk.  Main body of Lsrdev code.
 
-The following parts are essential to building Lisa images:
+The following parts are essential to building Lsrdev images:
 
 a) Set up a development environment.  (Ubuntu or Debian based)
 b) mspgcc (LTS 20120406) toolchain (gcc 4.6.3)
@@ -48,22 +48,22 @@ You will be on the tp-master branch of the repo.
 
 **************************************************************************************
 
-3) Pull the Lisa tree.
+3) Pull the Lsrdev tree.
 
-The main body of Lisa code is held in the git repository gh:ClimateMinder/lisa(master).  You
-pull a read only copy from git://github.com/ClimateMinder/lisa.git.
+The main body of Lsrdev code is held in the git repository gh:ClimateMinder/lsrdev(master).  You
+pull a read only copy from git://github.com/ClimateMinder/lsrdev.git.
 
 If you will be contributing code to the project you should follow the instruction found
 in doc/02_Contributing_Code.  You will get a github login in and fork your own copy
-of the lisa repo.   Work is done on local working branches.  The working branch should be
+of the lsrdev repo.   Work is done on local working branches.  The working branch should be
 kept current with respect to the trunk using rebase, and a pull request made against the
 trunk.
 
 Normal user (not enabled).
 
 cd ~/w
-git clone git://github.com/ClimateMinder/lisa.git
-cd lisa
+git clone git://github.com/ClimateMinder/lsrdev.git
+cd lsrdev
 
 # you should be on the master branch by default.
 
@@ -72,8 +72,8 @@ cd lisa
 4) Set environment variables.
 
 MOTECOM="serial@/dev/ttyUSB1:115200"
-LISA_ROOT="$HOME/w/lisa"
-TOSMAKE_PATH="$LISA_ROOT/support/make"
+LSRDEV_ROOT="$HOME/w/lsrdev"
+TOSMAKE_PATH="$LSRDEV_ROOT/support/make"
 TOSROOT=$HOME/w/t2_cur/tinyos-2.x
 TOSDIR=$TOSROOT/tos
 
@@ -84,7 +84,7 @@ PYTHONPATH=$TOSROOT/support/sdk/python:$PYTHONPATH
 PYTHONPATH="/usr/local/lib/python3.1/dist-packages:$PYTHONPATH"
 
 export MAKERULES TOSDIR TOSROOT CLASSPATH PYTHONPATH LD_LIBRARY_PATH
-export MOTECOM LISA_ROOT TOSMAKE_PATH
+export MOTECOM LSRDEV_ROOT TOSMAKE_PATH
 
 
 **************************************************************************************
@@ -94,8 +94,8 @@ export MOTECOM LISA_ROOT TOSMAKE_PATH
    connected to /dev/ttyUSB0.
 
    cd ~/w/t2_cur/tinyos-2.x/apps/Blink
-   make lisa
-   mspdebug uif -qjd /dev/ttyUSB0 "prog build/lisa/main.exe"
+   make lsrdev
+   mspdebug uif -qjd /dev/ttyUSB0 "prog build/lsrdev/main.exe"
 
 
    When the download completes use a different window and run:
@@ -106,7 +106,7 @@ export MOTECOM LISA_ROOT TOSMAKE_PATH
    Follow the instructions in $TOSROOT/tos/chips/msp430/99_gdb/00_README to set
    up the gdb control files in their proper places (.gdbinit, .gdb_x5, etc).
 
-   now if you run msp430-gdb build/lisa/main.exe  gdb should connect to the proxy and start
+   now if you run msp430-gdb build/lsrdev/main.exe  gdb should connect to the proxy and start
    to debug your code in the device.  To let the device run use 'c', continue.  Do not use
    'run'.
 
@@ -133,6 +133,6 @@ The main tracking repo is at:
         read-only, development version of the tinyprod/prod repository.  Typically
 	used for integrating working development code.
 
-    gh:ClimateMinder/lisa(master)
-	read-only, lisa mainline.
+    gh:ClimateMinder/lsrdev(master)
+	read-only, lsrdev mainline.
 
